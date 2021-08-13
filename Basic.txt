@@ -1,0 +1,74 @@
+Sub infor()
+    'Declare variables
+    Dim ticker As String
+    Dim yearlyChange As Double
+    Dim percentChange As Double
+    Dim totalStockVolume As Long
+    Dim count As Integer
+    Dim lastRow As Long
+    Dim year As String
+    Dim month As String
+    Dim startYear As Double
+    Dim endYear As Double
+    
+    
+    'Set count to 1, this sets the row for the summary table
+    count = 1
+    
+    'Find last row of table
+    lastRow = Cells(Rows.count, 1).End(xlUp).Row
+    
+    'Set column headers
+    Range("I1") = "Ticker"
+    Range("J1") = "Yearly Change"
+    Range("K1") = "Percent Change"
+    Range("L1") = "Total Stock Volume"
+    'Delete later
+    Range("M1") = "BegYear"
+    Range("N1") = "EndYear"
+
+    'loop through rows of data for the sheet
+    For i = 2 To lastRow
+        year = Left(Range("B" & i).Value, 4)
+        month = Right(Range("B" & i).Value, 4)
+        
+        'checks if current cell and next cell have same ticker value
+        If Cells(i + 1, 1).Value <> Cells(i, 1) Then
+            'Set ticker value
+            ticker = Cells(i, 1).Value
+            
+            'Extract Year
+            Range("I" & count + 1).Value = ticker
+            Range("M" & count + 1).Value = year
+            Range("N" & count + 1).Value = month
+            
+            '1231 represents the last month for the year
+            If month = "1231" Then
+                'yearly change is dec close - jan open
+                endYear = Cells(i, 6).Value
+                yearlyChange = endYear - startYear
+                'Change percentage change to percentage format
+                Range("K" & count + 1).NumberFormat = "0.00%"
+                percentageChange = (yearlyChange / startYear)
+                Range("O" & count + 1).Value = Cells(i, 6).Value
+                Range("P" & count + 1).Value = startYear
+                Range("Q" & count + 1).Value = endYear
+                Range("J" & count + 1).Value = yearlyChange
+                Range("K" & count + 1).Value = percentageChange
+            End If
+            
+            'Add one to count
+            count = count + 1
+            
+            Else
+            '0101 is the starting month of year
+            If month = "0101" Then
+            'open price at start of year
+                startYear = Cells(i, 3).Value
+                End If
+            End If
+        Next i
+        MsgBox ("done")
+End Sub
+
+
