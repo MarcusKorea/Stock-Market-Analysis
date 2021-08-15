@@ -20,30 +20,31 @@ Sub challenge()
     Dim indexGD As Integer
     Dim indexGV As Integer
     
-    'Set count to 1, this sets the row for the summary table
-    count = 1
-    countSame = 1
-    
-    'Find last row of table
-    lastRow = Cells(Rows.count, 1).End(xlUp).Row
-    
-    'Set column headers
-    Range("I1") = "Ticker"
-    Range("J1") = "Yearly Change"
-    Range("K1") = "Percent Change"
-    Range("L1") = "Total Stock Volume"
-
     'loop through rows of data for the sheet
-    For i = 2 To lastRow
+    For Each ws In Worksheets
+        count = 1
+        countSame = 1
+        
+        lastRow = ws.Cells(Rows.count, 1).End(xlUp).Row
+        ws.Range("I1") = "Ticker"
+        ws.Range("J1") = "Yearly Change"
+        ws.Range("K1") = "Percent Change"
+        ws.Range("L1") = "Total Stock Volume"
+        ws.Range("O2").Value = "Greatest % Increase"
+        ws.Range("O3").Value = "Greatest % Decrease"
+        ws.Range("O4").Value = "Greatest Total Volume"
+        ws.Range("P1").Value = "Ticker"
+        ws.Range("Q1").Value = "Value"
+        For i = 2 To lastRow
 
         'checks if current cell and next cell have same ticker value
         If Cells(i + 1, 1).Value <> Cells(i, 1) Then
             'Set ticker value
-            ticker = Cells(i, 1).Value
+            ticker = ws.Cells(i, 1).Value
             
              ' Find the close price at latest month
 
-                latestMonthPrice = Cells(i, 6).Value
+                latestMonthPrice = ws.Cells(i, 6).Value
                 
                 ' yearly change is dec close - jan open
                 yearlyChange = latestMonthPrice - earlyMonthPrice
@@ -56,28 +57,28 @@ Sub challenge()
                 End If
 
                 'Change percentage change to percenteage format
-                Range("K" & count + 1).NumberFormat = "0.00%"
+                ws.Range("K" & count + 1).NumberFormat = "0.00%"
                 
                 'Change yearly change to number format so cells can be condtionally formatted
-                Range("J" & count + 1).NumberFormat = "0.00"
+                ws.Range("J" & count + 1).NumberFormat = "0.00"
                 
                 'Add to total stock volume
-                totalStockVolume = totalStockVolume + Cells(i, 7).Value
+                totalStockVolume = totalStockVolume + ws.Cells(i, 7).Value
                 
                 'Print values in summary table
-                Range("I" & count + 1).Value = ticker
-                Range("J" & count + 1).Value = yearlyChange
-                Range("K" & count + 1).Value = percentageChange
-                Range("L" & count + 1).Value = totalStockVolume
+                ws.Range("I" & count + 1).Value = ticker
+                ws.Range("J" & count + 1).Value = yearlyChange
+                ws.Range("K" & count + 1).Value = percentageChange
+                ws.Range("L" & count + 1).Value = totalStockVolume
                 
                 If yearlyChange < 0 Then ' red if less than 0
-                    Range("J" & count + 1).Interior.ColorIndex = 3
+                    ws.Range("J" & count + 1).Interior.ColorIndex = 3
                 ElseIf yearlyChange > 0 Then ' green if greater than 0
-                    Range("J" & count + 1).Interior.ColorIndex = 4
+                    ws.Range("J" & count + 1).Interior.ColorIndex = 4
                 ElseIf yearlyChange = 0 Then 'yellow if equal to 0
                 Range("J" & count + 1).Interior.ColorIndex = 6
                 End If
-                                
+                
                 latestMonthPrice = 0
                 
                 'Add one to count
@@ -90,16 +91,42 @@ Sub challenge()
             Else
                 ' Find the open price at earliest month for first stock only
                 If countSame = 1 Then
-                    If Cells(i, 3).Value = 0 Then
-                        earlyMonthPrice = Cells(i + 1, 3).Value
+                    If ws.Cells(i, 3).Value = 0 Then
+                        earlyMonthPrice = ws.Cells(i + 1, 3).Value
                     Else
-                        earlyMonthPrice = Cells(i, 3).Value
+                        earlyMonthPrice = ws.Cells(i, 3).Value
                         countSame = countSame + 1
                     End If
                 End If
                 totalStockVolume = totalStockVolume + Cells(i, 7).Value
             End If
         Next i
-               
+        
+       'greatest percentage increase
+       greatestPercentage = WorksheetFunction.Max(ws.Range("K:K"))
+       'finds row number that max value is in and finds the ticker
+       indexGP = WorksheetFunction.Match(greatestPercentage, ws.Range("K:K"), 0)
+       ws.Range("P2").Value = ws.Range("I" & indexGP)
+       ws.Range("Q2").Value = greatestPercentage
+       ws.Range("Q2").NumberFormat = "0.00%"
+      
+      'greatest percentage decrease
+       greatestPercentageDec = WorksheetFunction.Min(ws.Range("K:K"))
+       'finds row number that min value is in and finds the ticker
+       indexGD = WorksheetFunction.Match(greatestPercentageDec, ws.Range("K:K"), 0)
+       ws.Range("P3").Value = ws.Range("I" & indexGD)
+       ws.Range("Q3").Value = greatestPercentageDec
+       ws.Range("Q3").NumberFormat = "0.00%"
+       
+       'greatest volume
+       greatestVol = WorksheetFunction.Max(ws.Range("L:L"))
+       'finds row number that max stock value is in and finds the ticker
+       indexGV = WorksheetFunction.Match(greatestVol, ws.Range("L:L"), 0)
+       ws.Range("P4").Value = ws.Range("I" & indexGV)
+       ws.Range("Q4").Value = greatestVol
+       
+       'adjust column width
+       ws.Columns(15).AutoFit
+    Next ws
        MsgBox ("Done")
 End Sub
